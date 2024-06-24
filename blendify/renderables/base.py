@@ -5,7 +5,7 @@ import bpy
 
 from ..colors import UniformColors, VertexColors
 from ..colors.base import ColorsMetadata, Colors
-from ..colors.texture import TextureColors, FileTextureColors
+from ..colors.texture import TextureColors, FileTextureColors, VideoFileTextureColors
 from ..internal.positionable import Positionable
 from ..materials.base import Material
 
@@ -191,6 +191,10 @@ class RenderableObject(Renderable):
             elif self._colors_metadata.type is FileTextureColors:
                 colors_node = material_node.node_tree.nodes.new('ShaderNodeTexImage')
                 colors_node.image = self._colors_metadata.texture
+            elif self._colors_metadata.type is VideoFileTextureColors:
+                colors_node = material_node.node_tree.nodes.new('ShaderNodeTexImage')
+                colors_node.image = self._colors_metadata.texture
+                colors_node.image_user.frame_duration = colors_node.image.frame_duration
             else:
                 raise NotImplementedError(f"Unsupported colors class '{self._colors_metadata.type}'")
             self._blender_colors_node = colors_node

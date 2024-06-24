@@ -1,7 +1,7 @@
 import bmesh
 import bpy
 import numpy as np
-
+import itertools
 from .base import RenderableObject
 from ..colors import VertexColors, UniformColors
 from ..colors.base import Colors
@@ -132,6 +132,9 @@ class Mesh(RenderableObject):
         """
         assert len(self._blender_mesh.vertices) == len(vertices), \
             f"Number of vertices should be the same (expected {len(self._blender_mesh.vertices)}, got {len(vertices)})"
-        for ind, vert in enumerate(self._blender_mesh.vertices):
-            vert.co = vertices[ind]
+        #for ind, vert in enumerate(self._blender_mesh.vertices):
+        #    vert.co = vertices[ind]
+        self._blender_mesh.vertices.foreach_set(
+            "co", tuple(itertools.chain.from_iterable(vertices))) # ISTVAN CHANGED IT
+
         self._blender_mesh.update()

@@ -122,3 +122,34 @@ class FileTextureColors(UVColors):
             bpy.types.Image: current Blender texture
         """
         return self._texture
+
+
+class VideoFileTextureColors(UVColors):
+    """A container which stores path to the texture file and the corresponding UV mapping
+    """
+    def __init__(self, texture_path: str, uv_map: UVMap):
+        """Create the texture container and load the texture from the path as a Blender texture
+
+        Args:
+            texture_path (str): path to the texture
+            uv_map: corresponding UV map
+        """
+        super().__init__(uv_map)
+        self._texture = bpy.data.images.load(texture_path)
+        self._texture.source = 'MOVIE'
+        self._metadata = ColorsMetadata(
+            type=self.__class__,
+            has_alpha=False,
+            color=None,
+            texture=self._texture
+        )
+
+
+    @property
+    def blender_texture(self) -> bpy.types.Image:
+        """Get the current Blender texture created from the pixels array
+
+        Returns:
+            bpy.types.Image: current Blender texture
+        """
+        return self._texture
