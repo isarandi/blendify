@@ -17,7 +17,7 @@ from .internal.types import Vector2d, Vector2di, Vector3d, Vector4d
 from .internal import parser
 from .lights import LightsCollection
 from .renderables import RenderablesCollection
-
+from memory_tempfile import MemoryTempfile
 
 class Scene(metaclass=Singleton):
     def __init__(self):
@@ -26,6 +26,9 @@ class Scene(metaclass=Singleton):
         self.lights = LightsCollection()
         self._camera = None
         self._reset_scene()
+        self.tempfile = MemoryTempfile()
+
+
 
     @staticmethod
     def _set_default_blender_parameters():
@@ -194,7 +197,8 @@ class Scene(metaclass=Singleton):
             raise RuntimeError("Can't render without a camera")
 
         render_to_ram = filepath is None
-        with tempfile.TemporaryDirectory() if render_to_ram else nullcontext() as tmpdir:
+
+        with self.tempfile.TemporaryDirectory() if render_to_ram else nullcontext() as tmpdir:
             if render_to_ram:
                 filepath = Path(tmpdir) / 'result.png'
             else:

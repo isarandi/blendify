@@ -31,6 +31,7 @@ for package in possible_opencv_packages:
 requirements = [
     "numpy",
     "scipy",
+    "memory-tempfile",
     "bpy==3.5.0",
     selected_opencv_package
 ]
