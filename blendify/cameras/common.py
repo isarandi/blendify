@@ -73,7 +73,7 @@ class PerspectiveCamera(Camera):
     def center(self) -> np.ndarray:
         camera = self.blender_camera
         ideal_center = self.resolution / 2.
-        center_offset = np.array([camera.data.shift_x, camera.data.shift_y])
+        center_offset = np.array([camera.data.shift_x, camera.data.shift_y]) * self.resolution
         real_center = ideal_center + center_offset
         return real_center
 
@@ -83,8 +83,8 @@ class PerspectiveCamera(Camera):
         real_center = np.array(real_center)
         ideal_center = self.resolution / 2.
         center_offset = real_center - ideal_center
-        camera.data.shift_x = center_offset[0]
-        camera.data.shift_y = center_offset[1]
+        camera.data.shift_x = center_offset[0] / self.resolution[0]
+        camera.data.shift_y = center_offset[1] / self.resolution[1]
 
     def distance2depth(self, distmap: np.ndarray) -> np.ndarray:
         """Convert map of camera ray lengths (distmap) to map of distances to image plane (depthmap)
@@ -103,6 +103,8 @@ class PerspectiveCamera(Camera):
         depthmap = np.sqrt(distmap ** 2 / ((grid_offsets_x ** 2 + grid_offsets_y ** 2) / (self.focal_dist ** 2) + 1))
         return depthmap
 
+
+    
 
 class OrthographicCamera(Camera):
     def __init__(
