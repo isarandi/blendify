@@ -465,3 +465,18 @@ class Scene(metaclass=Singleton):
 
                 # Camera is parsed, exiting
                 break
+
+    def set_background_light(self, strength: float = 1.0, color: Vector3d = (1.0, 1.0, 1.0)):
+        world = bpy.context.scene.world
+        world.use_nodes = True
+        nodes = world.node_tree.nodes
+        links = world.node_tree.links
+        for node in nodes:
+            nodes.remove(node)
+        bg_node = nodes.new(type='ShaderNodeBackground')
+        output_node = nodes.new(type='ShaderNodeOutputWorld')
+        if len(color) == 3:
+            color = (*color, 1.0)
+        bg_node.inputs['Color'].default_value = color
+        links.new(bg_node.outputs['Background'], output_node.inputs['Surface'])
+        bg_node.inputs['Strength'].default_value = strength
