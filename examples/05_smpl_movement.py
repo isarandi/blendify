@@ -1,8 +1,8 @@
 import argparse
 import json
-import logging
 import os
 from urllib import request
+from loguru import logger
 
 import numpy as np
 import trimesh
@@ -17,9 +17,6 @@ from blendify.utils.smpl_wrapper import SMPLWrapper
 
 
 def main(args):
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Blendify 05 example")
     # Load the scene
     logger.info("Loading scene resources...")
     trimesh_mesh = trimesh.load("./assets/05_smpl_movement/scene_mesh.ply")
@@ -73,10 +70,10 @@ def main(args):
 
     # Set the lights; one main sunlight and a secondary light without visible shadows to make the scene overall brighter
     sunlight = scene.lights.add_sun(
-        strength=4.3, quaternion=np.roll(Rotation.from_euler('yz', (-45, -90), degrees=True).as_quat(), 1)
+        strength=2.3, rotation_mode="euleryz", rotation=(-45, -90)
     )
     sunlight2 = scene.lights.add_sun(
-        strength=5, quaternion=np.roll(Rotation.from_euler('yz', (-45, 165), degrees=True).as_quat(), 1)
+        strength=3, rotation_mode="euleryz", rotation=(-45, 165)
     )
     sunlight2.cast_shadows = False
 
@@ -99,7 +96,7 @@ def main(args):
             smpl_vertices = smpl_model.get_smpl(smpl_pose, smpl_translation)
             smpl_mesh.update_vertices(smpl_vertices)
             # Set the current camera position
-            camera.set_position(camera_quaternion, camera_translation)
+            camera.set_position(rotation=camera_quaternion, translation=camera_translation)
             # Render the scene to temporary image
             img = scene.render(use_gpu=not args.cpu, samples=args.n_samples)
             # Frames have transparent background; perform an alpha blending with white background instead
@@ -146,6 +143,7 @@ if __name__ == "__main__":
     # Downloading assets if needed
     if not arguments.skip_download:
         os.makedirs("assets/05_smpl_movement", exist_ok=True)
+        # The scene mesh was generated from HPS dataset (Etage6 pointcloud) using blendify.utils.pointcloud.meshify_pc_from_file
         download("https://nextcloud.mpi-klsb.mpg.de/index.php/s/AESiBaXXyagNmrE/download",
                  "assets/05_smpl_movement/scene_texture.jpg")
         download("https://nextcloud.mpi-klsb.mpg.de/index.php/s/QCjTsJqSSrNb5nJ/download",

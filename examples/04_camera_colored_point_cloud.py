@@ -1,10 +1,9 @@
 import argparse
-import logging
-
 import bpy
 import numpy as np
 import trimesh
 from videoio import VideoWriter
+from loguru import logger
 
 from blendify import scene
 from blendify.colors import UniformColors, VertexColors
@@ -14,9 +13,6 @@ from blendify.utils.pointcloud import estimate_normals_from_pointcloud, approxim
 
 
 def main(args):
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Blendify 04 example")
     # Attach blender file with scene (walls and floor)
     logger.info("Attaching blend to the scene")
     scene.attach_blend("./assets/light_box.blend")
@@ -47,13 +43,13 @@ def main(args):
 
     # Add lights to the scene
     logger.info("Setting up the Blender scene")
-    scene.lights.add_point(quaternion=(0.571, 0.169, 0.272, 0.756), translation=(21.0, 0.0, 7.0), strength=10000)
-    scene.lights.add_point(quaternion=(0.571, 0.169, 0.272, 0.756), translation=(0.0, -21, 7.0), strength=10000)
+    scene.lights.add_point(rotation=(0.571, 0.169, 0.272, 0.756), translation=(21.0, 0.0, 7.0), strength=8000)
+    scene.lights.add_point(rotation=(0.571, 0.169, 0.272, 0.756), translation=(0.0, -21, 7.0), strength=8000)
 
     # Camera colored PointCloud
     # source of the mesh https://graphics.stanford.edu/data/3Dscanrep/
     # load only vertices of the example mesh
-    mesh = trimesh.load("./assets/bunny.obj", process=False, validate=False)
+    mesh = trimesh.load("./assets/bunny.ply", process=False, validate=False)
     vertices = mesh.vertices
     # estimate normals
     if args.backend == "orig":
@@ -67,7 +63,7 @@ def main(args):
     # add pointcloud to the scene
     pointcloud = scene.renderables.add_pointcloud(
         vertices=vertices, material=poincloud_material, colors=pointcloud_colors_init, point_size=0.03,
-        particle_emission_strength=0.1, quaternion=(1, 0, 0, 0), translation=(0, 0, 0)
+        particle_emission_strength=0.05, rotation=(1, 0, 0, 0), translation=(0, 0, 0)
     )
 
     # Optionally save blend file with the scene at frame 0
@@ -81,7 +77,7 @@ def main(args):
         for index, position in enumerate(camera_trajectory):
             logger.info(f"Rendering frame {index:03d} / {total_frames:03d}")
             # Set new camera position
-            camera.set_position(quaternion=position["quaternion"], translation=position["position"])
+            camera.set_position(rotation=position["quaternion"], translation=position["position"])
             # Approximate colors from normals and camera_view_direction
             camera_viewdir = camera.get_camera_viewdir()
             per_vertex_recolor = approximate_colors_from_camera(

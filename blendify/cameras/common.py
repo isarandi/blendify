@@ -24,7 +24,20 @@ class PerspectiveCamera(Camera):
             resolution (Vector2di): (w, h), the resolution of the resulting image
             near (float, optional): Camera near clipping distance (default: 0.1)
             far (float, optional): Camera far clipping distance (default: 100)
-            quaternion (Vector4d, optional): rotation applied to the Blender object (default: (1,0,0,0))
+            rotation_mode (str): type of rotation representation.
+                Can be one of the following:
+                - "quaternionWXYZ" - WXYZ quaternion
+                - "quaternionXYZW" - XYZW quaternion
+                - "rotvec" - axis-angle representation of rotation
+                - "rotmat" - 3x3 rotation matrix
+                - "euler<mode>" - Euler angles with the specified order of rotation, e.g. XYZ, xyz, ZXZ, etc. Refer to scipy.spatial.transform.Rotation.from_euler for details.
+                - "look_at" - look at rotation, the rotation is defined by the point to look at and, optional, the rotation around the forward direction vector (a single float value in tuple or list)
+            rotation (RotationParams): rotation parameters according to the rotation_mode
+                - for "quaternionWXYZ" and "quaternionXYZW" - Vec4d
+                - for "rotvec" - Vec3d
+                - for "rotmat" - Mat3x3
+                - for "euler<mode>" - Vec3d
+                - for "look_at" - Vec3d, Positionable or Tuple[Vec3d/Positionable, float], where float is the rotation around the forward direction vector in degrees
             translation (Vector3d, optional): translation applied to the Blender object (default: (0,0,0))
             tag (str): name of the created object in Blender
         """
@@ -73,18 +86,22 @@ class PerspectiveCamera(Camera):
     def center(self) -> np.ndarray:
         camera = self.blender_camera
         ideal_center = self.resolution / 2.
-        center_offset = np.array([camera.data.shift_x, camera.data.shift_y]) * self.resolution
-        real_center = ideal_center + center_offset
+        # Blender's camera shift is relative and bounded by [-2, 2]
+        center_offset_relative = np.array([camera.data.shift_x, camera.data.shift_y])
+        real_center = ideal_center + center_offset_relative * self.resolution
         return real_center
 
     @center.setter
     def center(self, real_center: Vector2d):
+        assert np.all(np.array(real_center) >= -2) and np.all(np.array(real_center) <= 2), \
+            ("Blender's camera center is set as a fraction of resolution and "
+             "should be in [-2, 2], got {}").format(real_center)
         camera = self.blender_camera
         real_center = np.array(real_center)
         ideal_center = self.resolution / 2.
-        center_offset = real_center - ideal_center
-        camera.data.shift_x = center_offset[0] / self.resolution[0]
-        camera.data.shift_y = center_offset[1] / self.resolution[1]
+        center_offset_relative = real_center - ideal_center / self.resolution
+        camera.data.shift_x = center_offset_relative[0]
+        camera.data.shift_y = center_offset_relative[1]
 
     def distance2depth(self, distmap: np.ndarray) -> np.ndarray:
         """Convert map of camera ray lengths (distmap) to map of distances to image plane (depthmap)
@@ -104,7 +121,6 @@ class PerspectiveCamera(Camera):
         return depthmap
 
 
-    
 
 class OrthographicCamera(Camera):
     def __init__(
@@ -119,7 +135,20 @@ class OrthographicCamera(Camera):
             resolution (Vector2di): (w, h), the resolution of the resulting image
             near (float, optional): Camera near clipping distance (default: 0.1)
             far (float, optional): Camera far clipping distance (default: 100)
-            quaternion (Vector4d, optional): rotation applied to the Blender object (default: (1,0,0,0))
+            rotation_mode (str): type of rotation representation.
+                Can be one of the following:
+                - "quaternionWXYZ" - WXYZ quaternion
+                - "quaternionXYZW" - XYZW quaternion
+                - "rotvec" - axis-angle representation of rotation
+                - "rotmat" - 3x3 rotation matrix
+                - "euler<mode>" - Euler angles with the specified order of rotation, e.g. XYZ, xyz, ZXZ, etc. Refer to scipy.spatial.transform.Rotation.from_euler for details.
+                - "look_at" - look at rotation, the rotation is defined by the point to look at and, optional, the rotation around the forward direction vector (a single float value in tuple or list)
+            rotation (RotationParams): rotation parameters according to the rotation_mode
+                - for "quaternionWXYZ" and "quaternionXYZW" - Vec4d
+                - for "rotvec" - Vec3d
+                - for "rotmat" - Mat3x3
+                - for "euler<mode>" - Vec3d
+                - for "look_at" - Vec3d, Positionable or Tuple[Vec3d/Positionable, float], where float is the rotation around the forward direction vector in degrees
             translation (Vector3d, optional): translation applied to the Blender object (default: (0,0,0))
             tag (str): name of the created object in Blender
         """

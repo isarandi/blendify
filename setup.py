@@ -1,6 +1,6 @@
 from pkg_resources import DistributionNotFound, get_distribution
 from setuptools import setup, find_packages
-version = '1.2.3'
+version = '2.0.0'
 
 with open("docs/pip_readme.md", "r") as fi:
     long_description = fi.read()
@@ -32,7 +32,7 @@ requirements = [
     "numpy",
     "scipy",
     "memory-tempfile",
-    "bpy==3.5.0",
+    "bpy==3.6.0",
     selected_opencv_package
 ]
 
@@ -43,14 +43,17 @@ docs_requirements = [
 ]
 
 utils_requirements = [
-    "open3d",           # Utils: normals estimation
+    "loguru",           # Utils: logging
+    "scikit-learn",     # Utils: KNN search
+    "open3d",           # Utils: normals estimation, mesh reconstruction
     "smplx",            # Utils: smpl wrapper
+    "torch",            # Utils: point cloud normals, texture generation
 ]
 
 examples_requirements = utils_requirements + [
     "videoio",          # Examples 4,5,6
     "scikit-image",     # Examples 3
-    "trimesh"           # Examples 2,3,4,5
+    "trimesh"           # Examples 2,3,4,5,7,8
 ]
 
 requirements_all = requirements + examples_requirements + docs_requirements

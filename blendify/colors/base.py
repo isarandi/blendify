@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Union, Sequence
 
 import bpy
 
@@ -11,6 +11,8 @@ class ColorsMetadata(NamedTuple):
     color: Optional[Vector3d]
     has_alpha: bool
     texture: Optional[bpy.types.Image]
+    interpolation: Optional[str] = None
+    frame_start: Optional[int] = None
 
     def __del__(self):
         if self.texture is not None:
@@ -21,6 +23,7 @@ class ColorsMetadata(NamedTuple):
 class Colors(ABC):
     """An abstract container template for storing the object coloring information
     """
+
     @abstractmethod
     def __init__(self):
         self._metadata: Optional[ColorsMetadata] = None
@@ -28,3 +31,6 @@ class Colors(ABC):
     @property
     def metadata(self) -> ColorsMetadata:
         return self._metadata
+
+
+ColorsList = Sequence[Colors]

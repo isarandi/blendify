@@ -1,8 +1,8 @@
 import argparse
-import logging
 
 import numpy as np
 from videoio import VideoWriter
+from loguru import logger
 
 from blendify import scene
 from blendify.colors import UniformColors
@@ -30,11 +30,8 @@ def line_points(line_start, line_end, count=10, include_endpoints=False):
 
 
 def main(args):
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Blendify 06 example")
     # Add camera to the scene
-    scene.set_perspective_camera(resolution=args.resolution, focal_dist=640, quaternion=(0.983, 0.182, 0, 0),
+    scene.set_perspective_camera(resolution=args.resolution, focal_dist=640, rotation=(0.983, 0.182, 0, 0),
                                  translation=(0, -1.15, -1.54))
     # Create one material for all objects
     material = PrincipledBSDFMaterial()
@@ -63,7 +60,7 @@ def main(args):
     infinity_figure_kp = np.vstack([left_part, line1_kp, right_part[::-1], line2_kp])
 
     # Create spheres on keypoints
-    sphere_color = UniformColors((0.6, 1.0, 0.4))
+    sphere_color = UniformColors((0.33, 1.0, 0.1))
     for kp in infinity_figure_kp:
         sphere = scene.renderables.add_sphere_nurbs(radius=0.03, material=material,
                                                     colors=sphere_color, translation=kp)
@@ -72,10 +69,10 @@ def main(args):
     curve_len_in_kp = 100
     curr_kp_offset = 0
     total_frames = len(infinity_figure_kp)
-    curve_color = UniformColors((1., 0.5, 0.2))
+    curve_color = UniformColors((1., 0.5, 0))
     curve = None
 
-    light = scene.lights.add_sun(strength=5)
+    light = scene.lights.add_sun(strength=3)
     # Optionally save blend file with the scene
     if args.output_blend is not None:
         scene.export(args.output_blend)
