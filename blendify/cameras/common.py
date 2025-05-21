@@ -85,7 +85,7 @@ class PerspectiveCamera(Camera):
     @property
     def center(self) -> np.ndarray:
         camera = self.blender_camera
-        ideal_center = self.resolution / 2.
+        ideal_center = (self.resolution - 1.0)/ 2.
         # Blender's camera shift is relative and bounded by [-2, 2]
         center_offset_relative = np.array([camera.data.shift_x, camera.data.shift_y])
         real_center = ideal_center + center_offset_relative * self.resolution
@@ -98,7 +98,7 @@ class PerspectiveCamera(Camera):
              "should be in [-2, 2], got {}").format(real_center)
         camera = self.blender_camera
         real_center = np.array(real_center)
-        ideal_center = self.resolution / 2.
+        ideal_center = (self.resolution - 1.0) / 2.
         center_offset_relative = real_center - ideal_center / self.resolution
         camera.data.shift_x = center_offset_relative[0]
         camera.data.shift_y = center_offset_relative[1]

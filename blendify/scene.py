@@ -45,7 +45,7 @@ class Scene(metaclass=Singleton):
         bpy.context.scene.render.image_settings.color_mode = "RGBA"
         bpy.context.scene.render.image_settings.file_format = "PNG"
         bpy.context.scene.render.image_settings.quality = 100
-        bpy.context.scene.render.image_settings.color_depth = '8'
+        bpy.context.scene.render.image_settings.color_depth = "8"
         bpy.context.scene.world.color = (0, 0, 0)
         bpy.context.scene.render.film_transparent = True
         bpy.context.scene.cycles.filter_width = 0  # turn off anti-aliasing
@@ -327,16 +327,22 @@ class Scene(metaclass=Singleton):
 
         if color_dtype not in [np.uint8, np.uint16]:
             raise ValueError("Invalid rgb_dtype. Must be np.uint8 or np.uint16")
-        bpy.context.scene.render.image_settings.color_depth = '8' if color_dtype == np.uint8 else '16'
+        bpy.context.scene.render.image_settings.color_depth = (
+            "8" if color_dtype == np.uint8 else "16"
+        )
         bpy.context.scene.camera = self.camera.blender_camera
         scene.cycles.sample_clamp_direct = 2.0
 
         # Setup denoising
         if use_denoiser:
             bpy.context.scene.cycles.use_denoising = True
-            bpy.context.scene.cycles.denoiser = "OPTIX"
+            try:
+                bpy.context.scene.cycles.denoiser = "OPTIX"
+            except:
+                bpy.context.scene.cycles.denoiser = "OPENIMAGEDENOISE"
             bpy.context.scene.view_layers[0].cycles.use_denoising = True
-            #bpy.context.view_layer.cycles.denoising_store_passes = True
+
+            # bpy.context.view_layer.cycles.denoising_store_passes = True
             bpy.context.scene.cycles.denoising_input_passes = (
                 "RGB_ALBEDO_NORMAL"  # Options: 'RGB', 'RGB_ALBEDO', 'RGB_ALBEDO_NORMAL'
             )
@@ -381,9 +387,7 @@ class Scene(metaclass=Singleton):
             scene_node_tree.links.new(
                 render_layer.outputs["Shadow Catcher"], alpha_over.inputs[1]
             )
-            scene_node_tree.links.new(
-                rendered_image, alpha_over.inputs[2]
-            )
+            scene_node_tree.links.new(rendered_image, alpha_over.inputs[2])
 
             output_image = scene_node_tree.nodes.new(type="CompositorNodeOutputFile")
             scene_node_tree.links.new(
@@ -392,9 +396,7 @@ class Scene(metaclass=Singleton):
         else:
             bpy.context.view_layer.cycles.use_pass_shadow_catcher = False
             output_image = scene_node_tree.nodes.new(type="CompositorNodeOutputFile")
-            scene_node_tree.links.new(
-                rendered_image, output_image.inputs["Image"]
-            )
+            scene_node_tree.links.new(rendered_image, output_image.inputs["Image"])
 
         if save_depth:
             output_depth = scene_node_tree.nodes.new(type="CompositorNodeOutputFile")
